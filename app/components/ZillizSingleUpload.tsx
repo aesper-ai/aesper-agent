@@ -1,18 +1,19 @@
 import { useState } from 'react';
 
 export function ZillizSingleUpload() {
-    const [files, setFiles] = useState<FileList | null>(null);
+    const [file, setFile] = useState<File | null>(null);
     const [response, setResponse] = useState<any>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setFiles(e.target.files);
+        const selectedFile = e.target.files?.[0];
+        setFile(selectedFile || null);
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!files || files.length === 0) return;
+        if (!file) return;
 
         setLoading(true);
         setError(null);
@@ -20,9 +21,7 @@ export function ZillizSingleUpload() {
 
         try {
             const formData = new FormData();
-            Array.from(files).forEach(file => {
-                formData.append('files', file);
-            });
+            formData.append('file', file);
 
             const res = await fetch('http://0.0.0.0:8080/zilliz/single', {
                 method: 'POST',
@@ -44,39 +43,31 @@ export function ZillizSingleUpload() {
 
     return (
         <div className="border border-black rounded-lg p-4 mb-6">
-            <h2 className="text-xl font-bold mb-4 text-black">Zilliz Single Upload</h2>
+            <h2 className="text-xl font-bold mb-4 text-black">Zilliz Single File Upload</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                    <label htmlFor="zilliz-single-files" className="block text-sm font-medium mb-2 text-black">
-                        Select Files:
+                    <label htmlFor="zilliz-single-file" className="block text-sm font-medium mb-2 text-black">
+                        Select File:
                     </label>
                     <input
-                        id="zilliz-single-files"
+                        id="zilliz-single-file"
                         type="file"
-                        multiple
                         onChange={handleFileChange}
                         className="w-full p-2 border border-black rounded-md text-black"
                         required
                     />
                 </div>
-                {files && files.length > 0 && (
+                {file && (
                     <div className="text-sm text-black">
-                        Selected {files.length} files:
-                        <ul className="mt-1 ml-4">
-                            {Array.from(files).map((file, index) => (
-                                <li key={index}>
-                                    {file.name} ({(file.size / 1024).toFixed(2)} KB)
-                                </li>
-                            ))}
-                        </ul>
+                        Selected: {file.name} ({(file.size / 1024).toFixed(2)} KB)
                     </div>
                 )}
                 <button
                     type="submit"
-                    disabled={loading || !files || files.length === 0}
+                    disabled={loading || !file}
                     className="bg-purple-500 text-white px-4 py-2 rounded-md hover:bg-purple-600 disabled:bg-gray-400"
                 >
-                    {loading ? 'Uploading...' : 'Upload to Zilliz (Single)'}
+                    {loading ? 'Uploading...' : 'Upload to Zilliz'}
                 </button>
             </form>
 
